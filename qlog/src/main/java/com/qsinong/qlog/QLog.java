@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class QLog {
 
     public static final String TAG = "QLog";
-    public final static QLog INSTANCE = new QLog();//搞啥懒汉么意义
+    private final static QLog INSTANCE = new QLog();//搞啥懒汉么意义
 
     public static void init(Application context) {
         INSTANCE.qLogConfig = QLogConfig.Build(context).build();
@@ -79,6 +79,11 @@ public class QLog {
         INSTANCE.log(Level.DEBUG, tag, log);
     }
 
+    //立即持久化日志,阻塞
+    public static void flush() {
+        INSTANCE.flushAll();
+    }
+
 
     //获取日记路径
     public static String getPath() {
@@ -92,28 +97,41 @@ public class QLog {
 
     private Map<String, LogInfo> map = new ConcurrentHashMap<>();
 
+    private void flushAll() {
+        for (Map.Entry<String, LogInfo> e : map.entrySet()) e.getValue().flush();
+    }
 
-    public void log(Level level, String tag, String log) {
+    private void log(Level level, String tag, String log) {
         if (qLogConfig == null) {
             Log.e(TAG, "请先初始化QLog.init()");
             return;
         }
-        if (qLogConfig.debug()) {
-            switch (level) {
-                case ERROR:
-                    Log.e(tag, log);break;
-                case INFO:
-                    Log.i(tag, log);break;
-                case DEBUG:
-                    Log.d(tag, log);break;
-                case WARING:
-                    Log.w(tag, log);break;
-            }
-        }
+
 
         String timeSSS = Util.formatTime();
         String date = timeSSS.substring(0, 10);
         String thread = Thread.currentThread().getName();
+        String stact = "";
+        if (qLogConfig.methodCount() > 0) {
+            stact = " ~ " + Util.getStack(5, 1);
+        }
+
+        if (qLogConfig.debug()) {
+            switch (level) {
+                case ERROR:
+                    Log.e(tag, log + stact);
+                    break;
+                case INFO:
+                    Log.i(tag, log + stact);
+                    break;
+                case DEBUG:
+                    Log.d(tag, log + stact);
+                    break;
+                case WARING:
+                    Log.w(tag, log + stact);
+                    break;
+            }
+        }
 
         String fileName = date + ".txt";
         if (tag != null && !tag.isEmpty())
@@ -133,11 +151,11 @@ public class QLog {
                 thread +
                 "] " +
                 log +
+                stact +
                 "\n";
         logInfo.apply(sb);
 
     }
-
 
     private static class LogInfo {
 
@@ -150,14 +168,14 @@ public class QLog {
         private volatile ScheduledFuture scheduledFuture;//可见性
         private ReentrantLock reentrantLock = new ReentrantLock();
 
-        public LogInfo(QLogConfig qLogConfig, String fileName) {
+        LogInfo(QLogConfig qLogConfig, String fileName) {
             this.qLogConfig = qLogConfig;
             this.folder = qLogConfig.path();
             this.fileName = fileName;
         }
 
         //此方法不阻塞
-        public void apply(final String log) {
+        void apply(final String log) {
             //优化锁机制,解决以下2个问题
             // 1.直接无脑开线程费性能
             // 2.直接写入buff有可能正在flush操作而需要加锁等待阻塞
@@ -180,7 +198,7 @@ public class QLog {
         }
 
         //日记写入缓存,线程安全,防止多线程日记乱了
-        public void write(String log) {
+        void write(String log) {
             try {
                 reentrantLock.lock();
                 try {
@@ -217,7 +235,7 @@ public class QLog {
         };
 
         //日记持久化,加锁,阻塞,防止线程安全问题重复写入
-        public void flush() {
+        void flush() {
             try {
                 reentrantLock.lock();
                 long temp = System.currentTimeMillis();

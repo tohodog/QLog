@@ -58,15 +58,17 @@ public class Util {
     }
 
 
-    public static void i(String msg) {
+    public static String getStack(int stackOffset, int methodCount) {
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();//[0]为本方法
 
-        int methodCount = 1;//打印方法数
-        int stackOffset = getStackOffset(trace);
+//        int methodCount = 1;//打印方法数
+//        int stackOffset = 4;
 
         if (methodCount + stackOffset > trace.length) {
-            methodCount = trace.length - stackOffset - 1;
+            methodCount = trace.length - stackOffset;
         }
+
+        StringBuilder builder = new StringBuilder();
 
         for (int i = methodCount; i > 0; i--) {
             int stackIndex = i + stackOffset;
@@ -74,32 +76,17 @@ public class Util {
                 continue;
             }
             StackTraceElement element = trace[stackIndex];
-
-            StringBuilder builder = new StringBuilder();
+            if (builder.length() > 0) builder.append("\n");
             builder.append(getSimpleClassName(element.getClassName()))
                     .append(".")
                     .append(element.getMethodName())
-                    .append(" ")
-                    .append(" (")
+                    .append("(")
                     .append(element.getFileName())
                     .append(":")
                     .append(element.getLineNumber())
-                    .append(")")
-                    .append(" | ")
-                    .append(msg);
-            System.out.print(builder);
+                    .append(")");
         }
-    }
-
-    private static int getStackOffset(StackTraceElement[] trace) {
-        for (int i = 2; i < trace.length; i++) {
-            StackTraceElement e = trace[i];
-            String name = e.getClassName();
-            if (!name.equals(Util.class.getName())) {
-                return --i;
-            }
-        }
-        return -1;
+        return builder.toString();
     }
 
 }
