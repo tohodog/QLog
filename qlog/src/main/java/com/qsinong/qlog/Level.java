@@ -4,5 +4,6 @@ public enum Level {
     DEBUG,
     INFO,
     WARING,
-    ERROR
+    ERROR,
+    VERBOSE
 }

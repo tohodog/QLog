@@ -19,7 +19,7 @@ public class Util {
     private static ThreadLocal<SimpleDateFormat> threadLocal = new ThreadLocal<>();
 
     @SuppressLint("SimpleDateFormat")
-    static String formatTime() {//new SimpleDateFormat这个东西太费性能了,ThreadLocal优化下
+    public static String formatTime() {//new SimpleDateFormat这个东西太费性能了,ThreadLocal优化下
         SimpleDateFormat sdf = threadLocal.get();
         if (sdf == null) {
             sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -28,7 +28,7 @@ public class Util {
         return sdf.format(new Date());
     }
 
-    static boolean writeData(String folder, String fileName, byte[] bytes) {
+    public static boolean writeData(String folder, String fileName, byte[] bytes) {
         File file = new File(folder);
         if (!file.exists()) file.mkdirs();
         try {

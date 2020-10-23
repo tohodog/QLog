@@ -14,7 +14,7 @@ public class QLogConfig {
     //触发缓存写入硬盘时间间隔
     public static final int TIMESPACE = 10_000;
     //触发缓存写入硬盘缓存大小
-    public static final int BUFFSIZE = 1024 * 1024;//128k
+    public static final int BUFFSIZE = 256 * 1024;//256k
 
     private Application application;
     private boolean debug;
@@ -108,6 +108,5 @@ public class QLogConfig {
             this.methodCount = methodCount;
             return this;
         }
-
     }
 }

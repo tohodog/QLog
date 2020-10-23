@@ -1,14 +1,24 @@
-package com.qsinong.qlog;
+package com.qsinong.example.single;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
+import android.os.Environment;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.RandomAccessFile;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -264,5 +274,210 @@ public class QLog {
         }
     }
 
+    //=============================================内部类===========================================
 
+    public static class QLogConfig {
+
+        //两个条件符合一个即会写入磁盘
+
+        //触发缓存写入硬盘时间间隔
+        public static final int TIMESPACE = 10_000;
+        //触发缓存写入硬盘缓存大小
+        public static final int BUFFSIZE = 256 * 1024;//256k
+
+        private Application application;
+        private boolean debug;
+        private String path;
+        private int delay;
+        private int buffSize;
+        private int methodCount;
+
+        public Application application() {
+            return application;
+        }
+
+        public boolean debug() {
+            return debug;
+        }
+
+        public String path() {
+            return path;
+        }
+
+        public int delay() {
+            return delay;
+        }
+
+        public int buffSize() {
+            return buffSize;
+        }
+
+        public int methodCount() {
+            return methodCount;
+        }
+
+        private QLogConfig() {
+        }
+
+        public static Builder Build(Application application) {
+            return new Builder(application);
+        }
+
+        public static final class Builder {
+
+            private Application application;
+            private boolean debug = true;
+            private String path;
+            private int delay = TIMESPACE;
+            private int buffSize = BUFFSIZE;
+            private int methodCount;
+
+            private Builder(Application application) {
+                this.application = application;
+                this.path = application.getExternalFilesDir(Environment.DIRECTORY_DCIM) + "/Qlog";
+            }
+
+            public QLogConfig build() {
+                QLogConfig qsHttpConfig = new QLogConfig();
+                qsHttpConfig.application = application;
+                qsHttpConfig.debug = debug;
+                qsHttpConfig.path = path;
+                qsHttpConfig.delay = delay;
+                qsHttpConfig.buffSize = buffSize;
+                qsHttpConfig.methodCount = methodCount;
+                return qsHttpConfig;
+            }
+
+            public QLogConfig.Builder debug(boolean debug) {
+                this.debug = debug;
+                return this;
+            }
+
+            public QLogConfig.Builder application(Application application) {
+                this.application = application;
+                return this;
+            }
+
+            public QLogConfig.Builder path(String path) {
+                this.path = path;
+                return this;
+            }
+
+            public QLogConfig.Builder delay(int delay) {
+                this.delay = delay;
+                return this;
+            }
+
+            public QLogConfig.Builder buffSize(int buffSize) {
+                this.buffSize = buffSize;
+                return this;
+            }
+
+            //打印方法名
+            public QLogConfig.Builder methodCount(int methodCount) {
+                this.methodCount = methodCount;
+                return this;
+            }
+        }
+    }
+
+    private enum Level {
+        DEBUG,
+        INFO,
+        WARING,
+        ERROR,
+        VERBOSE
+    }
+
+    private static class ExecutorManager {
+
+        private static final int DEFAULT_THREAD_POOL_SIZE = 10;
+
+        public static final ScheduledExecutorService SCHEDULED_EXECUTOR_SERVICE = Executors
+                .newScheduledThreadPool(DEFAULT_THREAD_POOL_SIZE);
+
+        public static void execute(Runnable runnable) {
+            SCHEDULED_EXECUTOR_SERVICE.execute(runnable);
+        }
+
+        public static ScheduledFuture<?> schedule(Runnable runnable, long delay) {
+            return SCHEDULED_EXECUTOR_SERVICE.schedule(runnable, delay, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private static class Util {
+
+        private static ThreadLocal<SimpleDateFormat> threadLocal = new ThreadLocal<>();
+
+        @SuppressLint("SimpleDateFormat")
+        public static String formatTime() {//new SimpleDateFormat这个东西太费性能了,ThreadLocal优化下
+            SimpleDateFormat sdf = threadLocal.get();
+            if (sdf == null) {
+                sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                threadLocal.set(sdf);
+            }
+            return sdf.format(new Date());
+        }
+
+        public static boolean writeData(String folder, String fileName, byte[] bytes) {
+            File file = new File(folder);
+            if (!file.exists()) file.mkdirs();
+            try {
+//            PrintWriter pw = new PrintWriter(file);
+//            FileOutputStream fos = new FileOutputStream(new File(file, fileName));
+//            OutputStreamWriter osw = new OutputStreamWriter(fos);
+//            fos.write(bytes);
+//            fos.close();
+                // 打开一个随机访问文件流，按读写方式
+                RandomAccessFile randomFile = new RandomAccessFile(new File(file, fileName), "rw");
+                randomFile.seek(randomFile.length());
+                randomFile.write(bytes);
+                randomFile.close();
+                return true;
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return false;
+        }
+
+        private static String getSimpleClassName(String name) {
+            int lastIndex = name.lastIndexOf(".");
+            return name.substring(lastIndex + 1);
+        }
+
+        public static String getStack(int stackOffset, int methodCount) {
+            StackTraceElement[] trace = Thread.currentThread().getStackTrace();//[0]为本方法
+
+//        int methodCount = 1;//打印方法数
+//        int stackOffset = 4;
+
+            if (methodCount + stackOffset > trace.length) {
+                methodCount = trace.length - stackOffset;
+            }
+
+            StringBuilder builder = new StringBuilder();
+
+            for (int i = methodCount; i > 0; i--) {
+                int stackIndex = i + stackOffset;
+                if (stackIndex >= trace.length) {
+                    continue;
+                }
+                StackTraceElement element = trace[stackIndex];
+                if (builder.length() > 0) builder.append("\n");
+                builder.append(getSimpleClassName(element.getClassName()))
+                        .append(".")
+                        .append(element.getMethodName())
+                        .append("(")
+                        .append(element.getFileName())
+                        .append(":")
+                        .append(element.getLineNumber())
+                        .append(")");
+            }
+            return builder.toString();
+        }
+
+    }
 }
