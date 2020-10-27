@@ -13,7 +13,7 @@ Android Log Persistence Lightweight Framework 安卓日志持久化轻量级框�
     Log.e("login", "error日志"));//写入->2020-10-20_login.txt
 ```
 ## 集成
-可以接下载[QLog.java](https://raw.githubusercontent.com/tohodog/QLog/master/app/src/main/java/com/qsinong/example/single/QLog.java)单文件使用,够轻量!
+可以直接下载[QLog.java](https://raw.githubusercontent.com/tohodog/QLog/master/app/src/main/java/com/qsinong/example/single/QLog.java)单文件使用,够轻量!
 <br/>
 ### Gradle
 ```
