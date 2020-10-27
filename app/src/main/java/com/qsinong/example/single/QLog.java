@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,11 +35,17 @@ public class QLog {
     private final static QLog INSTANCE = new QLog();//搞啥懒汉么意义
 
     public static void init(Application context) {
-        INSTANCE.qLogConfig = QLogConfig.Build(context).build();
+        init(QLogConfig.Build(context).build());
     }
 
-    public static void init(QLogConfig qLogConfig) {
+    public static void init(final QLogConfig qLogConfig) {
         INSTANCE.qLogConfig = qLogConfig;
+        ExecutorManager.execute(new Runnable() {
+            @Override
+            public void run() {
+                Util.checkLog(qLogConfig);
+            }
+        });
     }
 
     public static void i(String log) {
@@ -129,7 +136,7 @@ public class QLog {
         String thread = Thread.currentThread().getName();
         String stact = "";
         if (qLogConfig.methodCount() > 0) {
-            stact = " ~ " + Util.getStack(5, 1);
+            stact = Util.getStack(qLogConfig.methodCount());
         }
 
         if (qLogConfig.debug()) {
@@ -291,6 +298,7 @@ public class QLog {
         private int delay;
         private int buffSize;
         private int methodCount;
+        private int day;
 
         public Application application() {
             return application;
@@ -316,6 +324,10 @@ public class QLog {
             return methodCount;
         }
 
+        public int day() {
+            return day;
+        }
+
         private QLogConfig() {
         }
 
@@ -331,6 +343,7 @@ public class QLog {
             private int delay = TIMESPACE;
             private int buffSize = BUFFSIZE;
             private int methodCount;
+            private int day;
 
             private Builder(Application application) {
                 this.application = application;
@@ -345,37 +358,42 @@ public class QLog {
                 qsHttpConfig.delay = delay;
                 qsHttpConfig.buffSize = buffSize;
                 qsHttpConfig.methodCount = methodCount;
+                qsHttpConfig.day = day;
                 return qsHttpConfig;
             }
 
-            public QLogConfig.Builder debug(boolean debug) {
+            public Builder debug(boolean debug) {
                 this.debug = debug;
                 return this;
             }
 
-            public QLogConfig.Builder application(Application application) {
+            public Builder application(Application application) {
                 this.application = application;
                 return this;
             }
 
-            public QLogConfig.Builder path(String path) {
+            public Builder path(String path) {
                 this.path = path;
                 return this;
             }
 
-            public QLogConfig.Builder delay(int delay) {
+            public Builder delay(int delay) {
                 this.delay = delay;
                 return this;
             }
 
-            public QLogConfig.Builder buffSize(int buffSize) {
+            public Builder buffSize(int buffSize) {
                 this.buffSize = buffSize;
                 return this;
             }
 
-            //打印方法名
-            public QLogConfig.Builder methodCount(int methodCount) {
+            public Builder methodCount(int methodCount) {
                 this.methodCount = methodCount;
+                return this;
+            }
+
+            public Builder day(int day) {
+                this.day = day;
                 return this;
             }
         }
@@ -405,7 +423,7 @@ public class QLog {
         }
     }
 
-    private static class Util {
+    public static class Util {
 
         private static ThreadLocal<SimpleDateFormat> threadLocal = new ThreadLocal<>();
 
@@ -448,26 +466,21 @@ public class QLog {
             return name.substring(lastIndex + 1);
         }
 
-        public static String getStack(int stackOffset, int methodCount) {
-            StackTraceElement[] trace = Thread.currentThread().getStackTrace();//[0]为本方法
 
-//        int methodCount = 1;//打印方法数
-//        int stackOffset = 4;
-
-            if (methodCount + stackOffset > trace.length) {
-                methodCount = trace.length - stackOffset;
-            }
+        public static String getStack(int methodCount) {
+            StackTraceElement[] trace = Thread.currentThread().getStackTrace();//[0][1]系统方法 [2]本方法
 
             StringBuilder builder = new StringBuilder();
 
-            for (int i = methodCount; i > 0; i--) {
-                int stackIndex = i + stackOffset;
-                if (stackIndex >= trace.length) {
+            for (int i = 3; i < trace.length; i++) {
+                StackTraceElement element = trace[i];
+                String name = getSimpleClassName(element.getClassName());
+                if (name.startsWith(QLog.class.getSimpleName()))
                     continue;
-                }
-                StackTraceElement element = trace[stackIndex];
-                if (builder.length() > 0) builder.append("\n");
-                builder.append(getSimpleClassName(element.getClassName()))
+                if (methodCount == 0) break;
+//            if (builder.length() > 0)
+                builder.append("\n");
+                builder.append(name)
                         .append(".")
                         .append(element.getMethodName())
                         .append("(")
@@ -475,9 +488,33 @@ public class QLog {
                         .append(":")
                         .append(element.getLineNumber())
                         .append(")");
+                methodCount--;
             }
             return builder.toString();
         }
 
+        /**
+         * 检测日志删除过期的
+         */
+        public static void checkLog(final QLogConfig qLogConfig) {
+            if (qLogConfig.day() <= 0) return;
+
+            File f = new File(qLogConfig.path());
+            if (!f.isDirectory()) return;
+            File[] files = f.listFiles();
+            if (files == null) return;
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DAY_OF_YEAR, -qLogConfig.day() + 1);
+            String date = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+
+            for (File file : files) {
+                if (file.getName().compareTo(date) < 0) {
+                    Log.i(QLog.TAG, "Del log:" + file.getName());
+                    file.delete();
+                }
+            }
+        }
     }
+
 }

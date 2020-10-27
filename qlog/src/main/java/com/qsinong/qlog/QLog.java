@@ -24,11 +24,17 @@ public class QLog {
     private final static QLog INSTANCE = new QLog();//搞啥懒汉么意义
 
     public static void init(Application context) {
-        INSTANCE.qLogConfig = QLogConfig.Build(context).build();
+        init(QLogConfig.Build(context).build());
     }
 
-    public static void init(QLogConfig qLogConfig) {
+    public static void init(final QLogConfig qLogConfig) {
         INSTANCE.qLogConfig = qLogConfig;
+        ExecutorManager.execute(new Runnable() {
+            @Override
+            public void run() {
+                Util.checkLog(qLogConfig);
+            }
+        });
     }
 
     public static void i(String log) {
@@ -119,7 +125,7 @@ public class QLog {
         String thread = Thread.currentThread().getName();
         String stact = "";
         if (qLogConfig.methodCount() > 0) {
-            stact = " ~ " + Util.getStack(5, 1);
+            stact = Util.getStack(qLogConfig.methodCount());
         }
 
         if (qLogConfig.debug()) {

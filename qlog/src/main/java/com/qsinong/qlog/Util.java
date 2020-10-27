@@ -1,12 +1,14 @@
 package com.qsinong.qlog;
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -58,26 +60,20 @@ public class Util {
     }
 
 
-    public static String getStack(int stackOffset, int methodCount) {
-        StackTraceElement[] trace = Thread.currentThread().getStackTrace();//[0]为本方法
-
-//        int methodCount = 1;//打印方法数
-//        int stackOffset = 4;
-
-        if (methodCount + stackOffset > trace.length) {
-            methodCount = trace.length - stackOffset;
-        }
+    public static String getStack(int methodCount) {
+        StackTraceElement[] trace = Thread.currentThread().getStackTrace();//[0][1]系统方法 [2]本方法
 
         StringBuilder builder = new StringBuilder();
 
-        for (int i = methodCount; i > 0; i--) {
-            int stackIndex = i + stackOffset;
-            if (stackIndex >= trace.length) {
+        for (int i = 3; i < trace.length; i++) {
+            StackTraceElement element = trace[i];
+            String name = getSimpleClassName(element.getClassName());
+            if (name.startsWith(QLog.class.getSimpleName()))
                 continue;
-            }
-            StackTraceElement element = trace[stackIndex];
-            if (builder.length() > 0) builder.append("\n");
-            builder.append(getSimpleClassName(element.getClassName()))
+            if (methodCount == 0) break;
+//            if (builder.length() > 0)
+            builder.append("\n");
+            builder.append(name)
                     .append(".")
                     .append(element.getMethodName())
                     .append("(")
@@ -85,8 +81,32 @@ public class Util {
                     .append(":")
                     .append(element.getLineNumber())
                     .append(")");
+            methodCount--;
         }
         return builder.toString();
+    }
+
+    /**
+     * 检测日志删除过期的
+     */
+    public static void checkLog(final QLogConfig qLogConfig) {
+        if (qLogConfig.day() <= 0) return;
+
+        File f = new File(qLogConfig.path());
+        if (!f.isDirectory()) return;
+        File[] files = f.listFiles();
+        if (files == null) return;
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, -qLogConfig.day() + 1);
+        String date = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+
+        for (File file : files) {
+            if (file.getName().compareTo(date) < 0) {
+                Log.i(QLog.TAG, "Del log:" + file.getName());
+                file.delete();
+            }
+        }
     }
 
 }

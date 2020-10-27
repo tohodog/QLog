@@ -22,6 +22,7 @@ public class QLogConfig {
     private int delay;
     private int buffSize;
     private int methodCount;
+    private int day;
 
     public Application application() {
         return application;
@@ -47,6 +48,10 @@ public class QLogConfig {
         return methodCount;
     }
 
+    public int day() {
+        return day;
+    }
+
     private QLogConfig() {
     }
 
@@ -62,6 +67,7 @@ public class QLogConfig {
         private int delay = TIMESPACE;
         private int buffSize = BUFFSIZE;
         private int methodCount;
+        private int day;
 
         private Builder(Application application) {
             this.application = application;
@@ -76,6 +82,7 @@ public class QLogConfig {
             qsHttpConfig.delay = delay;
             qsHttpConfig.buffSize = buffSize;
             qsHttpConfig.methodCount = methodCount;
+            qsHttpConfig.day = day;
             return qsHttpConfig;
         }
 
@@ -106,6 +113,11 @@ public class QLogConfig {
 
         public Builder methodCount(int methodCount) {
             this.methodCount = methodCount;
+            return this;
+        }
+
+        public Builder day(int day) {
+            this.day = day;
             return this;
         }
     }

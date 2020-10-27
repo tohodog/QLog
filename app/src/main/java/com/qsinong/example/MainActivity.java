@@ -21,12 +21,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
 
-        QLog.init(QLogConfig.Build(getApplication()).debug(true).build());
+        QLog.init(QLogConfig.Build(getApplication()).day(30).methodCount(1).debug(true).build());
 
         findViewById(R.id.tv).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //测试性能把 init(...debug=false) ,安卓自带的日志打印需要损耗性能
+                //测试性能把 init(...debug(false)) ,安卓自带的日志打印需要损耗性能
                 long t = System.currentTimeMillis();
                 for (int i = 0; i < 10; i++) {
                     QLog.d("log11111111111111111111111111111111111111111");
