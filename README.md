@@ -9,8 +9,8 @@ Android Log Persistence Lightweight Framework 安卓日志持久化轻量级框�
 ## DEMO
 ```
     QLog.init(getApplication());//默认路径->/Android/data/包名/files/DCIM/QLog
-    Log.i("info日志"));//默认写入->/2020-10-20_QLog.txt
-    Log.e("login", "error日志"));//写入->2020-10-20_login.txt
+    QLog.i("info日志"));//默认写入->/2020-10-20_QLog.txt
+    QLog.e("login", "error日志"));//写入->2020-10-20_login.txt
 ```
 ## 集成
 可以直接下载[QLog.java](https://raw.githubusercontent.com/tohodog/QLog/master/app/src/main/java/com/qsinong/example/single/QLog.java)单文件使用,够轻量!
