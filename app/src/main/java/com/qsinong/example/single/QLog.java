@@ -290,7 +290,7 @@ public class QLog {
         //触发缓存写入硬盘时间间隔
         public static final int TIMESPACE = 10_000;
         //触发缓存写入硬盘缓存大小
-        public static final int BUFFSIZE = 256 * 1024;//256k
+        public static final int BUFFSIZE = 128 * 1024;//128k
 
         private Application application;
         private boolean debug;
@@ -438,9 +438,9 @@ public class QLog {
         }
 
         public static boolean writeData(String folder, String fileName, byte[] bytes) {
-            File file = new File(folder);
-            if (!file.exists()) file.mkdirs();
             try {
+                File file = new File(folder);
+                if (!file.exists()) file.mkdirs();
 //            PrintWriter pw = new PrintWriter(file);
 //            FileOutputStream fos = new FileOutputStream(new File(file, fileName));
 //            OutputStreamWriter osw = new OutputStreamWriter(fos);
@@ -456,8 +456,9 @@ public class QLog {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
             return false;
         }
 

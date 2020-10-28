@@ -21,32 +21,39 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
 
-        QLog.init(QLogConfig.Build(getApplication()).day(30).methodCount(1).debug(true).build());
+        QLog.init(QLogConfig.Build(getApplication())
+                .buffSize(256 * 1024)//buff大小
+                .delay(10000)//延迟写入时间
+                .day(30)//日志保留30天,默认无限制
+                .methodCount(0)//打印调用方法名
+                .debug(false)//true会输出控制台,上线可关掉
+                .build());
+
 
         findViewById(R.id.tv).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //测试性能把 init(...debug(false)) ,安卓自带的日志打印需要损耗性能
-                long t = System.currentTimeMillis();
-                for (int i = 0; i < 10; i++) {
-                    QLog.d("log11111111111111111111111111111111111111111");
-                }
-                Log.e("耗时", "" + (System.currentTimeMillis() - t));
 
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         long t = System.currentTimeMillis();
-                        for (int i = 0; i < 10; i++) {
-                            QLog.d("log222222222222222222222222222222222222222");
-                        }
-                        Log.v("耗时", "" + (System.currentTimeMillis() - t));
+                        for (int i = 0; i < 10000; i++)
+                            QLog.i("info日志info日志info日志info日志info日志info日志info日志info日志");
+                        Log.e("子线程耗时", "" + (System.currentTimeMillis() - t));
                     }
                 }).start();
+
+                long t = System.currentTimeMillis();
+                for (int i = 0; i < 10000; i++)
+                    QLog.e("login", "error日志error日志error日志error日志error日志error日志error日志error日志");
+                Log.e("主线程耗时", "" + (System.currentTimeMillis() - t));
             }
         });
 
         QLog.e("RuntimeException", "出错啦", new RuntimeException("xxxxxxxxxxx"));
 
+//        QLog.flush();
     }
 }

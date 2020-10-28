@@ -31,9 +31,10 @@ public class Util {
     }
 
     public static boolean writeData(String folder, String fileName, byte[] bytes) {
-        File file = new File(folder);
-        if (!file.exists()) file.mkdirs();
+
         try {
+            File file = new File(folder);
+            if (!file.exists()) file.mkdirs();
 //            PrintWriter pw = new PrintWriter(file);
 //            FileOutputStream fos = new FileOutputStream(new File(file, fileName));
 //            OutputStreamWriter osw = new OutputStreamWriter(fos);
@@ -48,6 +49,8 @@ public class Util {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
