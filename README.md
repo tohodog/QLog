@@ -56,7 +56,7 @@ QLog.flush();//如果要杀死App,需调用写入缓存
 [starsvg]: https://img.shields.io/github/stars/tohodog/QLog.svg?style=social&label=Stars
 [star]: https://github.com/tohodog/QLog
 
-[qlogsvg]: https://img.shields.io/badge/Qlog-1.0.0-blue.svg
+[qlogsvg]: https://img.shields.io/badge/Qlog-1.0-blue.svg
 
 [licensesvg]: https://img.shields.io/badge/License-Apache--2.0-red.svg
 [license]: https://raw.githubusercontent.com/tohodog/QLog/master/LICENSE
