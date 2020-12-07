@@ -1,5 +1,4 @@
 # QLog
-===  
 [![qlog][qlogsvg]][star]  [![License][licensesvg]][license]  
 Android Log Persistence Lightweight Framework 安卓日志持久化轻量级框架
 <br/>
