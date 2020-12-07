@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
                 .delay(10000)//延迟写入时间
                 .day(30)//日志保留30天,默认无限制
                 .methodCount(0)//打印调用方法名
-                .debug(false)//true会输出控制台,上线可关掉
+                .debug(BuildConfig.DEBUG)//true会输出控制台,上线可关掉
                 .build());
 
 
