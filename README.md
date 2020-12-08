@@ -11,10 +11,10 @@ Android Log Persistence Lightweight Framework 安卓日志持久化轻量级框�
   * 非阻塞,线程安全,SimpleDateFormat优化
 ## DEMO
 ```
-    QLog.init(getApplication()); //初始化,默认路径->/Android/data/包名/files/DCIM/QLog
+    QLog.init(getApplication());     //初始化,默认路径->/Android/data/包名/files/DCIM/QLog
 
-    QLog.i("info日志"); //默认写入-> 2020-10-20_QLog.txt
-    QLog.e("login", "error日志"); //写入-> 2020-10-20_login.txt
+    QLog.i("info日志");              //默认写入-> 2020-10-20_QLog.txt
+    QLog.e("login", "error日志");    //写入-> 2020-10-20_login.txt
     
     2020-10-20 08:27:00.360 INFO [main] info日志
     2020-10-20 08:27:00.360 ERROR [Thread-2] error日志
@@ -33,7 +33,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.tohodog:QLog:1.0'
+    implementation 'com.github.tohodog:QLog:1.1'
 }
 ```
 
@@ -46,9 +46,15 @@ QLog.init(QLogConfig.Build(getApplication())
         .day(30)//日志保留30天,默认无限制
         .methodCount(1)//打印调用方法名
         .debug(true)//true会输出控制台,上线可关掉
+        .logFormat(new LogFormat() {//格式化日记
+               @Override
+               public String format(Level level, String time, String log, String stact) {
+                   return level + " " + time + " " + log + " --" + stact;
+               }
+         })
         .build());
 
-QLog.flush();//如果要杀死App,需调用写入缓存
+QLog.flush();//如果要退出(杀死)App,需调用写入缓存
 ```
 
 ## Other
@@ -58,7 +64,7 @@ QLog.flush();//如果要杀死App,需调用写入缓存
 [starsvg]: https://img.shields.io/github/stars/tohodog/QLog.svg?style=social&label=Stars
 [star]: https://github.com/tohodog/QLog
 
-[qlogsvg]: https://img.shields.io/badge/Qlog-1.0-green.svg
+[qlogsvg]: https://img.shields.io/badge/Qlog-1.1-green.svg
 
 [licensesvg]: https://img.shields.io/badge/License-Apache--2.0-red.svg
 [license]: https://raw.githubusercontent.com/tohodog/QLog/master/LICENSE
