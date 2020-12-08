@@ -29,12 +29,12 @@ public class MainActivity extends AppCompatActivity {
                 .day(30)//日志保留30天,默认无限制
                 .methodCount(0)//打印调用方法名
                 .debug(false)//true会输出控制台,上线可关掉
-                .logFormat(new LogFormat() {
-                    @Override
-                    public String format(Level level, String time, String log, String stact) {
-                        return level + " " + time + " " + log + " --" + stact;
-                    }
-                })
+//                .logFormat(new LogFormat() {
+//                    @Override
+//                    public String format(Level level, String time, String log, String stact) {
+//                        return level + " " + time + " " + log + " --" + stact;
+//                    }
+//                })
                 .build());
 
 
