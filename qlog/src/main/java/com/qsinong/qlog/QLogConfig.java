@@ -23,6 +23,7 @@ public class QLogConfig {
     private int buffSize;
     private int methodCount;
     private int day;
+    private LogFormat logFormat;
 
     public Application application() {
         return application;
@@ -52,6 +53,10 @@ public class QLogConfig {
         return day;
     }
 
+    public LogFormat logFormat() {
+        return logFormat;
+    }
+
     private QLogConfig() {
     }
 
@@ -68,6 +73,7 @@ public class QLogConfig {
         private int buffSize = BUFFSIZE;
         private int methodCount;
         private int day;
+        private LogFormat logFormat;
 
         private Builder(Application application) {
             this.application = application;
@@ -83,6 +89,7 @@ public class QLogConfig {
             qsHttpConfig.buffSize = buffSize;
             qsHttpConfig.methodCount = methodCount;
             qsHttpConfig.day = day;
+            qsHttpConfig.logFormat = logFormat;
             return qsHttpConfig;
         }
 
@@ -120,5 +127,11 @@ public class QLogConfig {
             this.day = day;
             return this;
         }
+
+        public Builder logFormat(LogFormat logFormat) {
+            this.logFormat = logFormat;
+            return this;
+        }
+
     }
 }

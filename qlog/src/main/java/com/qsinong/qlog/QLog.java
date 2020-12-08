@@ -156,20 +156,25 @@ public class QLog {
         if (logInfo == null) {
             logInfo = new LogInfo(qLogConfig, fileName);
             LogInfo old = map.put(fileName, logInfo);
-            if (old != null) logInfo = old;
+            if (old != null) logInfo = old;//线程安全,java8可以直接computeIfAbsent
         }
-        //先组装好一整条日志,不用sbuild了,自动优化
-        String sb = timeSSS +
-                " " +
-                level +
-                " [" +
-                thread +
-                "] " +
-                log +
-                stact +
-                "\n";
-        logInfo.apply(sb);
 
+        if (logInfo.qLogConfig.logFormat() != null) {
+            //自定义日记格式
+            logInfo.apply(logInfo.qLogConfig.logFormat().format(level, timeSSS, log, stact) + "\n");
+        } else {
+            //先组装好一整条日志,不用sbuild了,自动优化
+            String sb = timeSSS +
+                    " " +
+                    level +
+                    " [" +
+                    thread +
+                    "] " +
+                    log +
+                    stact +
+                    "\n";
+            logInfo.apply(sb);
+        }
     }
 
     private static class LogInfo {
@@ -222,11 +227,12 @@ public class QLog {
                     e.printStackTrace();
                 }
                 cancel();
-                if (System.currentTimeMillis() - lastWriteTime > qLogConfig.delay() || buff.size() > qLogConfig.buffSize()) {
+                long space = System.currentTimeMillis() - lastWriteTime;
+                if (space > qLogConfig.delay() || buff.size() > qLogConfig.buffSize()) {
 //                    ExecutorManager.execute(flushRun);
                     flushRun.run();
                 } else {
-                    scheduledFuture = ExecutorManager.schedule(flushRun, qLogConfig.delay());
+                    scheduledFuture = ExecutorManager.schedule(flushRun, qLogConfig.delay() - space);
                 }
             } finally {
                 reentrantLock.unlock();
@@ -257,7 +263,7 @@ public class QLog {
                 if (buff.size() > 0 && Util.writeData(folder, fileName, buff.toByteArray())) {
 //                    if (qLogConfig.debug()) {
                     long use = System.currentTimeMillis() - temp;
-                    Log.d(TAG, "flush->logName:" + fileName + " len:" + buff.size() + " useTime:" + use);
+                    Log.d(TAG, "flush->logName:" + fileName + " ,len:" + buff.size() + " ,useTime:" + use);
 //                    }
                     if (buff.size() > qLogConfig.buffSize())//如果缓存过大重置,比如写入一个大log(MB),之后buff就一直很大了
                         buff = new ByteArrayOutputStream();
@@ -269,6 +275,5 @@ public class QLog {
             }
         }
     }
-
 
 }

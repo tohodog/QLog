@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
+import com.qsinong.qlog.Level;
+import com.qsinong.qlog.LogFormat;
 import com.qsinong.qlog.QLog;
 import com.qsinong.qlog.QLogConfig;
 
@@ -26,7 +28,13 @@ public class MainActivity extends AppCompatActivity {
                 .delay(10000)//延迟写入时间
                 .day(30)//日志保留30天,默认无限制
                 .methodCount(0)//打印调用方法名
-                .debug(BuildConfig.DEBUG)//true会输出控制台,上线可关掉
+                .debug(false)//true会输出控制台,上线可关掉
+                .logFormat(new LogFormat() {
+                    @Override
+                    public String format(Level level, String time, String log, String stact) {
+                        return level + " " + time + " " + log + " --" + stact;
+                    }
+                })
                 .build());
 
 

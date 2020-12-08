@@ -8,12 +8,14 @@ Android Log Persistence Lightweight Framework 安卓日志持久化轻量级框�
   * 按日期+TAG写入文件
   * 支持自动清理过期日志
   * 支持打印调用方法栈
+  * 支持自定义日志格式
   * 非阻塞,线程安全,SimpleDateFormat优化
 ## DEMO
 ```
-    QLog.init(getApplication());//默认路径->/Android/data/包名/files/DCIM/QLog
-    QLog.i("info日志");//默认写入->/2020-10-20_QLog.txt
-    QLog.e("login", "error日志");//写入->2020-10-20_login.txt
+    QLog.init(getApplication()); //初始化,默认路径->/Android/data/包名/files/DCIM/QLog
+
+    QLog.i("info日志"); //默认写入-> 2020-10-20_QLog.txt
+    QLog.e("login", "error日志"); //写入-> 2020-10-20_login.txt
     
     2020-10-20 08:27:00.360 INFO [main] info日志
     2020-10-20 08:27:00.360 ERROR [Thread-2] error日志
