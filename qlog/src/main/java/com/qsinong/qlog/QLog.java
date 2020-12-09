@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class QLog {
 
     public static final String TAG = "QLog";
-    private final static QLog INSTANCE = new QLog();//搞啥懒汉么意义
+    private final static QLog INSTANCE = new QLog();//不用懒汉么意义
 
     public static void init(Application context) {
         init(QLogConfig.Build(context).build());
@@ -148,9 +148,9 @@ public class QLog {
             }
         }
 
-        String fileName = date + ".txt";
+        String fileName = date + ".log";
         if (tag != null && !tag.isEmpty())
-            fileName = date + "_" + tag + ".txt";
+            fileName = date + "_" + tag + ".log";
 
         LogInfo logInfo = map.get(fileName);
         if (logInfo == null) {
@@ -260,7 +260,7 @@ public class QLog {
             try {
                 reentrantLock.lock();
                 long temp = System.currentTimeMillis();
-                if (buff.size() > 0 && Util.writeData(folder, fileName, buff.toByteArray())) {
+                if (buff.size() > 0 && Util.writeData(qLogConfig.writeData(), folder, fileName, buff.toByteArray())) {
 //                    if (qLogConfig.debug()) {
                     long use = System.currentTimeMillis() - temp;
                     Log.d(TAG, "flush->logName:" + fileName + " ,len:" + buff.size() + " ,useTime:" + use);

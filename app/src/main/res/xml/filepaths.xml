@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- 7.0配置共享文件夹 path:你的应用保存文件的根目录；name随便定义-->
+    <!--<root-path name="song" path="" />-->
+    <external-path
+        name="qsong"
+        path="." />
+</paths>

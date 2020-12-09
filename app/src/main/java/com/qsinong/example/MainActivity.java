@@ -6,10 +6,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import com.qsinong.qlog.Level;
-import com.qsinong.qlog.LogFormat;
 import com.qsinong.qlog.QLog;
 import com.qsinong.qlog.QLogConfig;
+import com.qsinong.qlog.WriteData;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,16 +24,22 @@ public class MainActivity extends AppCompatActivity {
 
         QLog.init(QLogConfig.Build(getApplication())
                 .buffSize(256 * 1024)//buff大小
-                .delay(10000)//延迟写入时间
-                .day(30)//日志保留30天,默认无限制
+                .delay(3000)//延迟写入时间
+                .day(1)//日志保留30天,默认无限制
                 .methodCount(0)//打印调用方法名
-                .debug(false)//true会输出控制台,上线可关掉
-//                .logFormat(new LogFormat() {
+                .debug(BuildConfig.DEBUG)//true会输出控制台,上线可关掉
+//                .logFormat(new LogFormat() {//自定义日记格式
 //                    @Override
 //                    public String format(Level level, String time, String log, String stact) {
 //                        return level + " " + time + " " + log + " --" + stact;
 //                    }
 //                })
+                .writeData(new WriteData() {//自定义写入/上传操作
+                    @Override
+                    public boolean writeData(String folder, String fileName, byte[] bytes) throws Exception {
+                        return false;//false会继续执行写入, true不继续执行
+                    }
+                })
                 .build());
 
 
@@ -61,7 +66,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         QLog.e("RuntimeException", "出错啦", new RuntimeException("xxxxxxxxxxx"));
+    }
 
-//        QLog.flush();
+    public void onDestroy() {
+        super.onDestroy();
+        QLog.flush();
     }
 }

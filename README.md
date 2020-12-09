@@ -8,12 +8,13 @@ Android Log Persistence Lightweight Framework 安卓日志持久化轻量级框�
   * 支持自动清理过期日志
   * 支持打印调用方法栈
   * 支持自定义日志格式
+  * 支持写入拦截(自定义写入本地/上传服务器)
   * 非阻塞,线程安全,SimpleDateFormat优化
 ## DEMO
 ```
-    QLog.init(getApplication());     //初始化,默认路径->/Android/data/包名/files/DCIM/QLog
+    QLog.init(getApplication());     //初始化,默认路径-> /Android/data/包名/files/QLog 
 
-    QLog.i("info日志");              //默认写入-> 2020-10-20_QLog.txt
+    QLog.i("info日志");              //写入-> 2020-10-20_QLog.txt
     QLog.e("login", "error日志");    //写入-> 2020-10-20_login.txt
     
     2020-10-20 08:27:00.360 INFO [main] info日志
@@ -33,24 +34,30 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.tohodog:QLog:1.1'
+    implementation 'com.github.tohodog:QLog:1.2'
 }
 ```
 
 ## 高级
 ```
 QLog.init(QLogConfig.Build(getApplication())
-        .path("/xxx")//日志目录
+        .path("/xxx")//日志目录,一般不要动安卓10限制了外部目录访问了
         .buffSize(128 * 1024)//buff大小
         .delay(10000)//延迟写入时间
         .day(30)//日志保留30天,默认无限制
         .methodCount(1)//打印调用方法名
-        .debug(true)//true会输出控制台,上线可关掉
-        .logFormat(new LogFormat() {//格式化日记
-               @Override
-               public String format(Level level, String time, String log, String stact) {
-                   return level + " " + time + " " + log + " --" + stact;
-               }
+        .debug(BuildConfig.DEBUG)//true会输出控制台,上线可关掉
+        .logFormat(new LogFormat() {//自定义日记格式
+             @Override
+             public String format(Level level, String time, String log, String stact) {
+                 return level + " " + time + " " + log + " ~" + stact;
+             }
+         })
+         .writeData(new WriteData() {//写入拦截,可自定义写入/上传操作
+             @Override
+             public boolean writeData(String folder, String fileName, byte[] bytes) throws Exception {
+                 return false;//false会继续执行写入, true不继续执行
+             }
          })
         .build());
 
@@ -64,7 +71,7 @@ QLog.flush();//如果要退出(杀死)App,需调用写入缓存
 [starsvg]: https://img.shields.io/github/stars/tohodog/QLog.svg?style=social&label=Stars
 [star]: https://github.com/tohodog/QLog
 
-[qlogsvg]: https://img.shields.io/badge/Qlog-1.1-green.svg
+[qlogsvg]: https://img.shields.io/badge/Qlog-1.2-green.svg
 
 [licensesvg]: https://img.shields.io/badge/License-Apache--2.0-red.svg
 [license]: https://raw.githubusercontent.com/tohodog/QLog/master/LICENSE

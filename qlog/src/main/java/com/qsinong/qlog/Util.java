@@ -30,9 +30,13 @@ public class Util {
         return sdf.format(new Date());
     }
 
-    public static boolean writeData(String folder, String fileName, byte[] bytes) {
+    public static boolean writeData(WriteData writeData, String folder, String fileName, byte[] bytes) {
 
         try {
+            if (writeData != null && writeData.writeData(folder, fileName, bytes)) {
+                return true;
+            }
+
             File file = new File(folder);
             if (!file.exists()) file.mkdirs();
 //            PrintWriter pw = new PrintWriter(file);
@@ -105,7 +109,9 @@ public class Util {
         String date = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
 
         for (File file : files) {
-            if (file.getName().compareTo(date) < 0) {
+            if (file.isDirectory()) continue;
+            String name = file.getName();
+            if (name.endsWith(".log") && name.compareTo(date) < 0) {
                 Log.i(QLog.TAG, "Del log:" + file.getName());
                 file.delete();
             }

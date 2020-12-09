@@ -1,7 +1,6 @@
 package com.qsinong.qlog;
 
 import android.app.Application;
-import android.os.Environment;
 
 /**
  * Created by song on 2020/10/22
@@ -24,6 +23,7 @@ public class QLogConfig {
     private int methodCount;
     private int day;
     private LogFormat logFormat;
+    private WriteData writeData;
 
     public Application application() {
         return application;
@@ -57,6 +57,10 @@ public class QLogConfig {
         return logFormat;
     }
 
+    public WriteData writeData() {
+        return writeData;
+    }
+
     private QLogConfig() {
     }
 
@@ -74,10 +78,11 @@ public class QLogConfig {
         private int methodCount;
         private int day;
         private LogFormat logFormat;
+        private WriteData writeData;
 
         private Builder(Application application) {
             this.application = application;
-            this.path = application.getExternalFilesDir(Environment.DIRECTORY_DCIM) + "/Qlog";
+            this.path = application.getExternalFilesDir(null) + "/Qlog";
         }
 
         public QLogConfig build() {
@@ -90,6 +95,7 @@ public class QLogConfig {
             qsHttpConfig.methodCount = methodCount;
             qsHttpConfig.day = day;
             qsHttpConfig.logFormat = logFormat;
+            qsHttpConfig.writeData = writeData;
             return qsHttpConfig;
         }
 
@@ -130,6 +136,11 @@ public class QLogConfig {
 
         public Builder logFormat(LogFormat logFormat) {
             this.logFormat = logFormat;
+            return this;
+        }
+
+        public Builder writeData(WriteData writeData) {
+            this.writeData = writeData;
             return this;
         }
 

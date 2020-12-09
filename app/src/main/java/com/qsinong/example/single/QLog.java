@@ -2,7 +2,6 @@ package com.qsinong.example.single;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
-import android.os.Environment;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -32,7 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class QLog {
 
     public static final String TAG = "QLog";
-    private final static QLog INSTANCE = new QLog();//搞啥懒汉么意义
+    private final static QLog INSTANCE = new QLog();//不用懒汉么意义
 
     public static void init(Application context) {
         init(QLogConfig.Build(context).build());
@@ -159,9 +158,9 @@ public class QLog {
             }
         }
 
-        String fileName = date + ".txt";
+        String fileName = date + ".log";
         if (tag != null && !tag.isEmpty())
-            fileName = date + "_" + tag + ".txt";
+            fileName = date + "_" + tag + ".log";
 
         LogInfo logInfo = map.get(fileName);
         if (logInfo == null) {
@@ -271,7 +270,7 @@ public class QLog {
             try {
                 reentrantLock.lock();
                 long temp = System.currentTimeMillis();
-                if (buff.size() > 0 && Util.writeData(folder, fileName, buff.toByteArray())) {
+                if (buff.size() > 0 && Util.writeData(qLogConfig.writeData(), folder, fileName, buff.toByteArray())) {
 //                    if (qLogConfig.debug()) {
                     long use = System.currentTimeMillis() - temp;
                     Log.d(TAG, "flush->logName:" + fileName + " ,len:" + buff.size() + " ,useTime:" + use);
@@ -307,6 +306,7 @@ public class QLog {
         private int methodCount;
         private int day;
         private LogFormat logFormat;
+        private WriteData writeData;
 
         public Application application() {
             return application;
@@ -340,6 +340,10 @@ public class QLog {
             return logFormat;
         }
 
+        public WriteData writeData() {
+            return writeData;
+        }
+
         private QLogConfig() {
         }
 
@@ -357,10 +361,11 @@ public class QLog {
             private int methodCount;
             private int day;
             private LogFormat logFormat;
+            private WriteData writeData;
 
             private Builder(Application application) {
                 this.application = application;
-                this.path = application.getExternalFilesDir(Environment.DIRECTORY_DCIM) + "/Qlog";
+                this.path = application.getExternalFilesDir(null) + "/Qlog";
             }
 
             public QLogConfig build() {
@@ -373,6 +378,7 @@ public class QLog {
                 qsHttpConfig.methodCount = methodCount;
                 qsHttpConfig.day = day;
                 qsHttpConfig.logFormat = logFormat;
+                qsHttpConfig.writeData = writeData;
                 return qsHttpConfig;
             }
 
@@ -416,6 +422,10 @@ public class QLog {
                 return this;
             }
 
+            public Builder writeData(WriteData writeData) {
+                this.writeData = writeData;
+                return this;
+            }
         }
     }
 
@@ -423,6 +433,9 @@ public class QLog {
         String format(Level level, String time, String log, String stact);
     }
 
+    public interface WriteData {
+        boolean writeData(String folder, String fileName, byte[] bytes) throws Exception;
+    }
 
     private enum Level {
         DEBUG,
@@ -462,8 +475,11 @@ public class QLog {
             return sdf.format(new Date());
         }
 
-        public static boolean writeData(String folder, String fileName, byte[] bytes) {
+        public static boolean writeData(WriteData writeData, String folder, String fileName, byte[] bytes) {
             try {
+                if (writeData != null && writeData.writeData(folder, fileName, bytes)) {
+                    return true;
+                }
                 File file = new File(folder);
                 if (!file.exists()) file.mkdirs();
 //            PrintWriter pw = new PrintWriter(file);
@@ -491,7 +507,6 @@ public class QLog {
             int lastIndex = name.lastIndexOf(".");
             return name.substring(lastIndex + 1);
         }
-
 
         public static String getStack(int methodCount) {
             StackTraceElement[] trace = Thread.currentThread().getStackTrace();//[0][1]系统方法 [2]本方法
@@ -535,7 +550,9 @@ public class QLog {
             String date = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
 
             for (File file : files) {
-                if (file.getName().compareTo(date) < 0) {
+                if (file.isDirectory()) continue;
+                String name = file.getName();
+                if (name.endsWith(".log") && name.compareTo(date) < 0) {
                     Log.i(QLog.TAG, "Del log:" + file.getName());
                     file.delete();
                 }
