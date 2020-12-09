@@ -23,18 +23,19 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
 
         QLog.init(QLogConfig.Build(getApplication())
-                .buffSize(256 * 1024)//buff大小
-                .delay(3000)//延迟写入时间
-                .day(1)//日志保留30天,默认无限制
-                .methodCount(0)//打印调用方法名
+                .path(getExternalFilesDir(null) + "/QLog")//日志目录,一般不要动安卓10限制了外部目录访问了
+                .buffSize(128 * 1024)//buff大小
+                .delay(10000)//延迟写入时间
+                .day(30)//日志保留30天,默认无限制
+                .methodCount(1)//打印调用方法名
                 .debug(BuildConfig.DEBUG)//true会输出控制台,上线可关掉
 //                .logFormat(new LogFormat() {//自定义日记格式
 //                    @Override
 //                    public String format(Level level, String time, String log, String stact) {
-//                        return level + " " + time + " " + log + " --" + stact;
+//                        return level + " " + time + " " + log + " ~" + stact;
 //                    }
 //                })
-                .writeData(new WriteData() {//自定义写入/上传操作
+                .writeData(new WriteData() {//写入拦截,可自定义写入/上传操作
                     @Override
                     public boolean writeData(String folder, String fileName, byte[] bytes) throws Exception {
                         return false;//false会继续执行写入, true不继续执行

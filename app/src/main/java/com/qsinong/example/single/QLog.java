@@ -365,7 +365,7 @@ public class QLog {
 
             private Builder(Application application) {
                 this.application = application;
-                this.path = application.getExternalFilesDir(null) + "/Qlog";
+                this.path = application.getExternalFilesDir(null) + "/QLog";
             }
 
             public QLogConfig build() {
@@ -437,7 +437,7 @@ public class QLog {
         boolean writeData(String folder, String fileName, byte[] bytes) throws Exception;
     }
 
-    private enum Level {
+    public enum Level {
         DEBUG,
         INFO,
         WARING,

@@ -14,8 +14,8 @@ Android Log Persistence Lightweight Framework 安卓日志持久化轻量级框�
 ```
     QLog.init(getApplication());     //初始化,默认路径-> /Android/data/包名/files/QLog 
 
-    QLog.i("info日志");              //写入-> 2020-10-20_QLog.txt
-    QLog.e("login", "error日志");    //写入-> 2020-10-20_login.txt
+    QLog.i("info日志");              //写入-> 2020-10-20_QLog.log
+    QLog.e("login", "error日志");    //写入-> 2020-10-20_login.log
     
     2020-10-20 08:27:00.360 INFO [main] info日志
     2020-10-20 08:27:00.360 ERROR [Thread-2] error日志
@@ -41,7 +41,7 @@ dependencies {
 ## 高级
 ```
 QLog.init(QLogConfig.Build(getApplication())
-        .path("/xxx")//日志目录,一般不要动安卓10限制了外部目录访问了
+        .path(getExternalFilesDir(null) + "/QLog")//日志目录,一般不要动安卓10限制了外部目录访问了
         .buffSize(128 * 1024)//buff大小
         .delay(10000)//延迟写入时间
         .day(30)//日志保留30天,默认无限制

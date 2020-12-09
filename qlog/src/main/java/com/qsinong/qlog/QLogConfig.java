@@ -82,7 +82,7 @@ public class QLogConfig {
 
         private Builder(Application application) {
             this.application = application;
-            this.path = application.getExternalFilesDir(null) + "/Qlog";
+            this.path = application.getExternalFilesDir(null) + "/QLog";
         }
 
         public QLogConfig build() {
