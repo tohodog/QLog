@@ -29,6 +29,7 @@ public class QLog {
 
     public static void init(final QLogConfig qLogConfig) {
         INSTANCE.qLogConfig = qLogConfig;
+
         ExecutorManager.execute(new Runnable() {
             @Override
             public void run() {
@@ -102,8 +103,22 @@ public class QLog {
         return INSTANCE.qLogConfig == null ? "" : INSTANCE.qLogConfig.path();
     }
 
+    private Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler;
 
     private QLog() {
+        //崩溃监听,清空缓存
+        defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                try {
+                    e("Crash", Util.dumpPhoneInfo(qLogConfig.application()), e);
+                    flush();
+                } finally {
+                    defaultUncaughtExceptionHandler.uncaughtException(t, e);
+                }
+            }
+        });
     }
 
     private QLogConfig qLogConfig;

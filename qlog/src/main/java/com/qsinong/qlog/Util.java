@@ -1,6 +1,10 @@
 package com.qsinong.qlog;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.util.Log;
 
 import java.io.File;
@@ -117,5 +121,48 @@ public class Util {
             }
         }
     }
+
+    /**
+     * 收集手机信息
+     */
+    public static String dumpPhoneInfo(Context context) {
+        StringBuilder pw = new StringBuilder("\n");
+
+        try {
+            //包信息
+            PackageManager pm = context.getPackageManager();
+            PackageInfo pi = null;
+            pi = pm.getPackageInfo(context.getPackageName(), PackageManager.GET_ACTIVITIES);
+            pw.append("App Version:");
+            pw.append(pi == null ? "??" : pi.versionName);
+            pw.append("(");
+            pw.append(pi == null ? "??" : pi.versionCode);
+            pw.append(")  ");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //Android版本号
+        pw.append("OS Version:");
+        pw.append(Build.VERSION.RELEASE);
+        pw.append("(");
+        pw.append(Build.VERSION.SDK_INT);
+        pw.append(")  ");
+
+        //手机制造商
+        pw.append("Vendor:");
+        pw.append(Build.MODEL).append("(").append(Build.MANUFACTURER).append(")");
+        pw.append("  ");
+
+        //cpu架构
+        pw.append("CPU ABI:");
+        if (Build.VERSION.SDK_INT >= 21 && Build.SUPPORTED_ABIS != null) {
+            for (String ss : Build.SUPPORTED_ABIS)
+                pw.append(ss).append(" ");
+        } else
+            pw.append(Build.CPU_ABI);
+        return pw.toString();
+    }
+
 
 }

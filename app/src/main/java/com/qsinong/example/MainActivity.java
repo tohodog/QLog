@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
                 .delay(10000)//延迟写入时间
                 .day(30)//日志保留30天,默认无限制
                 .methodCount(1)//打印调用方法名
-                .debug(BuildConfig.DEBUG)//true会输出控制台,上线可关掉
+                .debug(false)//true会输出控制台,上线可关掉
 //                .logFormat(new LogFormat() {//自定义日记格式
 //                    @Override
 //                    public String format(Level level, String time, String log, String stact) {
@@ -56,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
                         for (int i = 0; i < 10000; i++)
                             QLog.i("info日志info日志info日志info日志info日志info日志info日志info日志");
                         Log.e("子线程耗时", "" + (System.currentTimeMillis() - t));
+                        throw new RuntimeException("测试崩溃子线程");
+
                     }
                 }).start();
 
@@ -66,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        QLog.e("RuntimeException", "出错啦", new RuntimeException("xxxxxxxxxxx"));
+        QLog.e("RuntimeException", "出错啦", new RuntimeException("RuntimeException"));
     }
 
     public void onDestroy() {
