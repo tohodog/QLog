@@ -9,7 +9,9 @@ Android Log Persistence Lightweight Framework 安卓日志持久化轻量级框�
   * 支持打印调用方法栈
   * 支持自定义日志格式
   * 支持写入拦截(自定义写入本地/上传服务器)
+  * 支持记录崩溃信息
   * 非阻塞,线程安全,SimpleDateFormat优化
+
 ## DEMO
 ```
     QLog.init(getApplication());     //初始化,默认路径-> /Android/data/包名/files/QLog 
@@ -21,8 +23,6 @@ Android Log Persistence Lightweight Framework 安卓日志持久化轻量级框�
     2020-10-20 08:27:00.360 ERROR [Thread-2] error日志
 ```
 ## 集成
-可以直接下载[QLog.java](https://raw.githubusercontent.com/tohodog/QLog/master/app/src/main/java/com/qsinong/example/single/QLog.java)单文件使用,够轻量!
-<br/>
 ### Gradle
 ```
 allprojects {
@@ -34,10 +34,11 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.tohodog:QLog:1.2'
+    implementation 'com.github.tohodog:QLog:1.3'
 }
 ```
-
+也可以直接下载[QLog.java](https://raw.githubusercontent.com/tohodog/QLog/master/app/src/main/java/com/qsinong/example/single/QLog.java)单文件使用,够轻量!
+<br/>
 ## 高级
 ```
 QLog.init(QLogConfig.Build(getApplication())
@@ -61,7 +62,7 @@ QLog.init(QLogConfig.Build(getApplication())
          })
         .build());
 
-QLog.flush();//如果要退出(杀死)App,需调用写入缓存
+QLog.flush();//立即写入缓存
 ```
 
 ## Other
@@ -71,7 +72,7 @@ QLog.flush();//如果要退出(杀死)App,需调用写入缓存
 [starsvg]: https://img.shields.io/github/stars/tohodog/QLog.svg?style=social&label=Stars
 [star]: https://github.com/tohodog/QLog
 
-[qlogsvg]: https://img.shields.io/badge/Qlog-1.2-green.svg
+[qlogsvg]: https://img.shields.io/badge/Qlog-1.3-green.svg
 
 [licensesvg]: https://img.shields.io/badge/License-Apache--2.0-red.svg
 [license]: https://raw.githubusercontent.com/tohodog/QLog/master/LICENSE
