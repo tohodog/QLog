@@ -112,9 +112,13 @@ public class QLog {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
                 try {
-                    e("Crash", Util.dumpPhoneInfo(qLogConfig.application()), e);
-                    flush();
-                } finally {
+                    if (qLogConfig != null) {
+                        e("Crash", Util.dumpPhoneInfo(qLogConfig.application()), e);
+                        flush();
+                    }
+                } catch (Throwable a) {
+                    a.printStackTrace();
+                } finally {//崩溃事件继续流动,系统或其他程序
                     defaultUncaughtExceptionHandler.uncaughtException(t, e);
                 }
             }

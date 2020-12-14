@@ -134,9 +134,9 @@ public class Util {
             PackageInfo pi = null;
             pi = pm.getPackageInfo(context.getPackageName(), PackageManager.GET_ACTIVITIES);
             pw.append("App Version:");
-            pw.append(pi == null ? "??" : pi.versionName);
+            pw.append(pi.versionName);
             pw.append("(");
-            pw.append(pi == null ? "??" : pi.versionCode);
+            pw.append(pi.versionCode);
             pw.append(")  ");
         } catch (Exception e) {
             e.printStackTrace();

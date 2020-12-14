@@ -2,6 +2,10 @@ package com.qsinong.example.single;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -113,7 +117,26 @@ public class QLog {
     }
 
 
+    private Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler;
+
     private QLog() {
+        //崩溃监听,清空缓存
+        defaultUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                try {
+                    if (qLogConfig != null) {
+                        e("Crash", Util.dumpPhoneInfo(qLogConfig.application()), e);
+                        flush();
+                    }
+                } catch (Throwable a) {
+                    a.printStackTrace();
+                } finally {//崩溃事件继续流动,系统或其他程序
+                    defaultUncaughtExceptionHandler.uncaughtException(t, e);
+                }
+            }
+        });
     }
 
     private QLogConfig qLogConfig;
@@ -482,11 +505,11 @@ public class QLog {
                 }
                 File file = new File(folder);
                 if (!file.exists()) file.mkdirs();
-//            PrintWriter pw = new PrintWriter(file);
-//            FileOutputStream fos = new FileOutputStream(new File(file, fileName));
-//            OutputStreamWriter osw = new OutputStreamWriter(fos);
-//            fos.write(bytes);
-//            fos.close();
+//                PrintWriter pw = new PrintWriter(file);
+//                FileOutputStream fos = new FileOutputStream(new File(file, fileName));
+//                OutputStreamWriter osw = new OutputStreamWriter(fos);
+//                fos.write(bytes);
+//                fos.close();
                 // 打开一个随机访问文件流，按读写方式
                 RandomAccessFile randomFile = new RandomAccessFile(new File(file, fileName), "rw");
                 randomFile.seek(randomFile.length());
@@ -557,6 +580,48 @@ public class QLog {
                     file.delete();
                 }
             }
+        }
+
+        /**
+         * 收集手机信息
+         */
+        public static String dumpPhoneInfo(Context context) {
+            StringBuilder pw = new StringBuilder("\n");
+
+            try {
+                //包信息
+                PackageManager pm = context.getPackageManager();
+                PackageInfo pi = null;
+                pi = pm.getPackageInfo(context.getPackageName(), PackageManager.GET_ACTIVITIES);
+                pw.append("App Version:");
+                pw.append(pi.versionName);
+                pw.append("(");
+                pw.append(pi.versionCode);
+                pw.append(")  ");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            //Android版本号
+            pw.append("OS Version:");
+            pw.append(Build.VERSION.RELEASE);
+            pw.append("(");
+            pw.append(Build.VERSION.SDK_INT);
+            pw.append(")  ");
+
+            //手机制造商
+            pw.append("Vendor:");
+            pw.append(Build.MODEL).append("(").append(Build.MANUFACTURER).append(")");
+            pw.append("  ");
+
+            //cpu架构
+            pw.append("CPU ABI:");
+            if (Build.VERSION.SDK_INT >= 21 && Build.SUPPORTED_ABIS != null) {
+                for (String ss : Build.SUPPORTED_ABIS)
+                    pw.append(ss).append(" ");
+            } else
+                pw.append(Build.CPU_ABI);
+            return pw.toString();
         }
     }
 
