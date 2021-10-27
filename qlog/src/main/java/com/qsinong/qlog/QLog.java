@@ -103,6 +103,7 @@ public class QLog {
         return INSTANCE.qLogConfig == null ? "" : INSTANCE.qLogConfig.path();
     }
 
+
     private Thread.UncaughtExceptionHandler defaultUncaughtExceptionHandler;
 
     private QLog() {
@@ -119,7 +120,13 @@ public class QLog {
                 } catch (Throwable a) {
                     a.printStackTrace();
                 } finally {//崩溃事件继续流动,系统或其他程序
-                    defaultUncaughtExceptionHandler.uncaughtException(t, e);
+                    try {
+                        if (defaultUncaughtExceptionHandler != null) {
+                            defaultUncaughtExceptionHandler.uncaughtException(t, e);
+                        }
+                    } catch (Throwable a) {
+                        a.printStackTrace();
+                    }
                 }
             }
         });
@@ -201,10 +208,10 @@ public class QLog {
         private QLogConfig qLogConfig;
         private String folder, fileName;
 
-        private ByteArrayOutputStream buff = new ByteArrayOutputStream();//日记写入缓存
+        private ByteArrayOutputStream buff = new ByteArrayOutputStream();//日记写入缓存,非线程安全
         private volatile long lastWriteTime = System.currentTimeMillis();//最后一次写入时间
 
-        private volatile ScheduledFuture scheduledFuture;//可见性
+        private volatile ScheduledFuture scheduledFuture, scheduledFuture2;//可见性
         private ReentrantLock reentrantLock = new ReentrantLock();
 
         LogInfo(QLogConfig qLogConfig, String fileName) {
@@ -236,7 +243,7 @@ public class QLog {
             }
         }
 
-        //日记写入缓存,线程安全,防止多线程日记乱了
+        //日记写入缓存,线程安全,防止多线程buff日记乱了
         void write(String log) {
             try {
                 reentrantLock.lock();
@@ -245,32 +252,38 @@ public class QLog {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                cancel();
                 long space = System.currentTimeMillis() - lastWriteTime;
-                if (space > qLogConfig.delay() || buff.size() > qLogConfig.buffSize()) {
-//                    ExecutorManager.execute(flushRun);
-                    flushRun.run();
-                } else {
-                    scheduledFuture = ExecutorManager.schedule(flushRun, qLogConfig.delay() - space);
+                if (space > qLogConfig.delay() || buff.size() > qLogConfig.buffSize()) {//触发立即写入
+                    cancel();
+//                    flushRun.run();
+                    if (scheduledFuture2 == null) {//防止多个任务
+                        scheduledFuture2 = ExecutorManager.schedule(flushRun, 0);
+                    }
+                } else {//延时写入
+                    if (scheduledFuture == null) {//防止多个任务
+                        scheduledFuture = ExecutorManager.schedule(flushRun, qLogConfig.delay() - space);
+                    }
                 }
             } finally {
                 reentrantLock.unlock();
             }
         }
 
-        //取消上一个任务
-        private void cancel() {
+        //取消延时任务
+        private boolean cancel() {
+            boolean flag = true;
             ScheduledFuture temp = scheduledFuture;
-            if (temp != null && !temp.isCancelled() && !temp.isDone())
-                temp.cancel(false);
+            if (temp != null && !temp.isCancelled() && !temp.isDone()) {
+                flag = temp.cancel(false);
+            }
             scheduledFuture = null;
+            return flag;
         }
 
         private Runnable flushRun = new Runnable() {
             @Override
             public void run() {
                 flush();
-                lastWriteTime = System.currentTimeMillis();
             }
         };
 
@@ -289,7 +302,12 @@ public class QLog {
                     else
                         buff.reset();
                 }
+            } catch (Throwable t) {
+                t.printStackTrace();
             } finally {
+                lastWriteTime = System.currentTimeMillis();
+                scheduledFuture = null;
+                scheduledFuture2 = null;
                 reentrantLock.unlock();
             }
         }

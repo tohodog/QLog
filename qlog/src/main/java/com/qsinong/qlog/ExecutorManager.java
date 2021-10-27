@@ -1,6 +1,7 @@
 package com.qsinong.qlog;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -17,6 +18,10 @@ public final class ExecutorManager {
 
     public static void execute(Runnable runnable) {
         SCHEDULED_EXECUTOR_SERVICE.execute(runnable);
+    }
+
+    public static Future<?> submit(Runnable runnable) {
+        return SCHEDULED_EXECUTOR_SERVICE.submit(runnable);
     }
 
     public static ScheduledFuture<?> schedule(Runnable runnable, long delay) {

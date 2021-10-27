@@ -49,17 +49,19 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //测试性能把 init(...debug(false)) ,安卓自带的日志打印需要损耗性能
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        long t = System.currentTimeMillis();
-                        for (int i = 0; i < 10000; i++)
-                            QLog.i("info日志info日志info日志info日志info日志info日志info日志info日志");
-                        Log.e("子线程耗时", "" + (System.currentTimeMillis() - t));
+                for (int i = 0; i < 1; i++) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            long t = System.currentTimeMillis();
+                            for (int i = 0; i < 10000; i++)
+                                QLog.i("info日志info日志info日志info日志info日志info日志info日志info日志");
+                            Log.e("子线程耗时", "" + (System.currentTimeMillis() - t));
                         throw new RuntimeException("测试崩溃子线程");
 
-                    }
-                }).start();
+                        }
+                    }).start();
+                }
 
                 long t = System.currentTimeMillis();
                 for (int i = 0; i < 10000; i++)
