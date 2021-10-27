@@ -34,7 +34,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.tohodog:QLog:1.3'
+    implementation 'com.github.tohodog:QLog:1.4'
 }
 ```
 也可以直接下载[QLog.java](https://raw.githubusercontent.com/tohodog/QLog/master/app/src/main/java/com/qsinong/example/single/QLog.java)单文件使用,够轻量!
